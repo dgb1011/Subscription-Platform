@@ -1,8 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-export const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+// Initialize Gemini AI only if the API key is available
+// This prevents build errors when environment variables are not set
+const geminiApiKey = process.env.GEMINI_API_KEY || ''
 
-export const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+export const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null
+
+export const model = genAI ? genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' }) : null
 
 export interface UserProfile {
   experience_level: 'beginner' | 'intermediate' | 'advanced' | 'expert'
@@ -27,6 +31,12 @@ export async function getAIRecipeRecommendations(
   userProfile: UserProfile,
   availableRecipes: any[]
 ): Promise<RecipeRecommendation[]> {
+  // Check if Gemini AI is configured
+  if (!model) {
+    console.warn('Gemini AI is not configured - returning empty recommendations')
+    return []
+  }
+
   const prompt = `
     You are a professional brewing consultant with 20+ years experience.
     

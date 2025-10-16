@@ -1,6 +1,10 @@
 import { Resend } from 'resend'
 
-export const resend = new Resend(process.env.RESEND_API_KEY!)
+// Initialize Resend only if the API key is available
+// This prevents build errors when environment variables are not set
+const resendApiKey = process.env.RESEND_API_KEY || ''
+
+export const resend = resendApiKey ? new Resend(resendApiKey) : null
 
 export const EMAIL_TEMPLATES = {
   WELCOME: 'welcome',
@@ -17,6 +21,12 @@ export interface EmailData {
 }
 
 export async function sendEmail({ to, subject, template, data }: EmailData) {
+  // Check if Resend is configured
+  if (!resend) {
+    console.warn('Resend is not configured - email not sent')
+    return null
+  }
+
   try {
     const { data: result, error } = await resend.emails.send({
       from: 'Brewery Recipe Platform <noreply@breweryrecipes.com>',
