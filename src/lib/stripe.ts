@@ -1,8 +1,14 @@
 import Stripe from 'stripe'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-})
+// Initialize Stripe only if the secret key is available
+// This prevents build errors when environment variables are not set
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || ''
+
+export const stripe = stripeSecretKey
+  ? new Stripe(stripeSecretKey, {
+      apiVersion: '2024-06-20',
+    })
+  : null
 
 export const STRIPE_PRICE_IDS = {
   BASIC: process.env.STRIPE_BASIC_PRICE_ID!,
